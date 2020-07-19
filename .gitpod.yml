@@ -1,6 +1,20 @@
 image:
   file: .gitpod.Dockerfile
 
+ports:
+  - port: 8002
+    onOpen: open-browser
+
+tasks:
+  - name: frontend
+    init: >
+      cd /workspace/flutter-template;
+      flutter pub get;
+    command: >
+      cd /workspace/flutter-template;
+      flutter packages get;
+      flutter run -d web-server --web-port=8002 --web-hostname=0.0.0.0
+
 vscode:
   extensions:
     - Dart-Code.flutter@3.9.1:Ef3b5HLzz0C/TIa0n9xSyA==
