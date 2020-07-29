@@ -19,7 +19,8 @@ platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
     match(type: "appstore", readonly: true, app_identifier: "de.havogt.flutter")
-    sigh(team_id: "6NBT8Z3J37")
+#     sigh(team_id: "6NBT8Z3J37")
+    team_id("6NBT8Z3J37")
     build_app(workspace: "Runner.xcworkspace", scheme: "Runner")
     upload_to_testflight
   end
