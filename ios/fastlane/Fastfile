@@ -43,10 +43,6 @@ platform :ios do
       path: "Runner.xcodeproj",
       teamid: "6NBT8Z3J37"
     )
-#    update_project_team(
-#      path: "Runner.xcodeproj",
-#      teamid: "6NBT8Z3J37",
-#    )
     build_app(workspace: "Runner.xcworkspace", scheme: "Runner")
     upload_to_testflight
   end
