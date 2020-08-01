@@ -28,7 +28,7 @@ platform :ios do
     )
     match(type: "appstore",
       readonly: true,
-      app_identifier: "de.havogt.flutter"
+      app_identifier: "de.havogt.flutter",
       keychain_name: "fastlanechain",
       keychain_password: "some_weak_pw"
     )
