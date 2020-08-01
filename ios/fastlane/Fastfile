@@ -24,7 +24,7 @@ platform :ios do
       unlock: true,
       timeout: false,
       lock_when_sleeps: false,
-      password: some_weak_pw
+      password: "some_weak_pw"
     )
     match(type: "appstore", readonly: true, app_identifier: "de.havogt.flutter")
 #     sigh(team_id: "6NBT8Z3J37")
