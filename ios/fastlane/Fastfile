@@ -23,7 +23,7 @@ platform :ios do
       default_keychain: true,
       unlock: true,
       timeout: false,
-      lock_when_sleeps: true
+      lock_when_sleeps: false,
       password: some_weak_pw
     )
     match(type: "appstore", readonly: true, app_identifier: "de.havogt.flutter")
