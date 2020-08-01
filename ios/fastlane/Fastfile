@@ -18,6 +18,8 @@ default_platform(:ios)
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
+    #xcode_select "/Applications/Xcode_11.6.app"
+    xcode_select "/Applications/Xcode_10.3.app"
     create_keychain(
       name: "fastlanechain",
       default_keychain: true,
@@ -27,6 +29,7 @@ platform :ios do
       password: "some_weak_pw"
     )
     match(type: "appstore",
+#    match(type: "development",
       readonly: true,
       app_identifier: "de.havogt.flutter",
       keychain_name: "fastlanechain",
@@ -36,6 +39,7 @@ platform :ios do
       xcodeproj: 'Runner.xcodeproj',
       target_filter: 'Runner',
       build_configuration: 'Release',
+#      profile: ENV['sigh_de.havogt.flutter_development_profile-path'],
       profile: ENV['sigh_de.havogt.flutter_appstore_profile-path'],
       code_signing_identity: 'iPhone Distribution',
     )
@@ -43,7 +47,17 @@ platform :ios do
       path: "Runner.xcodeproj",
       teamid: "6NBT8Z3J37"
     )
-    build_app(workspace: "Runner.xcworkspace", scheme: "Runner")
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      codesigning_identity: "iPhone Distribution"
+    )
+    match(type: "appstore",
+      readonly: true,
+      app_identifier: "de.havogt.flutter",
+      keychain_name: "fastlanechain",
+      keychain_password: "some_weak_pw"
+    )
     upload_to_testflight
   end
 end
