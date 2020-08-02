@@ -18,7 +18,7 @@ default_platform(:ios)
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
-    xcode_select "/Applications/Xcode_10.3.app"
+#     xcode_select "/Applications/Xcode_10.3.app"
     create_keychain(
       name: "fastlanechain",
       default_keychain: true,
