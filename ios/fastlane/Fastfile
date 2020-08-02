@@ -59,7 +59,7 @@ platform :ios do
     )
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
-      apple_id: "webmaster@havogt.de"
+      apple_id: "1525278983"
     )
   end
 end
