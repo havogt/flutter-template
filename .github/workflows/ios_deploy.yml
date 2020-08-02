@@ -21,8 +21,8 @@ jobs:
         flutter pub get
         flutter packages get
         flutter build ios --release --no-codesign
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v2
+#     - name: Setup tmate session
+#       uses: mxschmitt/action-tmate@v2
     - name: Run Fastlane
       env:
         FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
