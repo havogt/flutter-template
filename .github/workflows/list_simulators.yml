@@ -1,0 +1,13 @@
+name: list simulators
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: list simulators
+      run: |
+        xcrun simctl list
