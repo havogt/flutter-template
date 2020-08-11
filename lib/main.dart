@@ -40,7 +40,7 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
+  String title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -63,7 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     var pushNotification = PushNotificationsManager();
-    pushNotification.init();
+    pushNotification
+        .init()
+        .then((value) => widget.title = value != null ? value : "ohoh");
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
