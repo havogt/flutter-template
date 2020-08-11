@@ -9,7 +9,7 @@ proj = Xcodeproj::Project.open("Runner.xcodeproj")
 # puts proj.product_ref_group
 # main_prod = proj.products.first #each{|prod| puts prod.path }
 # puts proj.products_group.name
-ref = proj.new_file("Runner/GoogleService-Info.plist")
+ref = proj.new_file("GoogleService-Info.plist")
 proj.targets.each do |target|
     puts target.name
     target.add_resources([ref])
