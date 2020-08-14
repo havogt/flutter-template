@@ -46,6 +46,11 @@ platform :ios do
       path: "Runner.xcodeproj",
       teamid: "6NBT8Z3J37"
     )
+#     TODO the following needs login...
+#     increment_build_number(
+#       build_number: latest_testflight_build_number + 1,
+#       xcodeproj: "Runner.xcodeproj"
+#     )
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
