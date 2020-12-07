@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_template/push_notifications.dart';
@@ -14,48 +16,129 @@ class MyApp extends StatelessWidget {
     var pushNotification = PushNotificationsManager();
     pushNotification.init();
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          // This is the theme of your application.
+          //
+          // Try running your application with "flutter run". You'll see the
+          // application has a blue toolbar. Then, without quitting the app, try
+          // changing the primarySwatch below to Colors.green and then invoke
+          // "hot reload" (press "r" in the console where you ran "flutter run",
+          // or simply save your changes to "hot reload" in a Flutter IDE).
+          // Notice that the counter didn't reset back to zero; the application
+          // is not restarted.
+          primarySwatch: Colors.blue,
+        ),
+        // home: MyHomePage(title: 'Flutter Demo Home Page'),
+        home: MapHomePage());
+  }
+}
+
+class MapHomePage extends StatelessWidget {
+  Future<List<Marker>> _getMarkers(BuildContext context) async {
+    String data = await DefaultAssetBundle.of(context)
+        .loadString("assets/defis_ch_24h.json");
+    final jsonData = jsonDecode(data);
+    print(jsonData);
+    List<Map<String, dynamic>> defis =
+        List<Map<String, dynamic>>.from(jsonData['features']);
+
+    var lst = List<Marker>();
+    for (Map<String, dynamic> defi in defis) {
+      Map<String, dynamic> geometry = defi['geometry'];
+      // List<int> coordinates = List<int>.from(geometry['coordinates'].map((x) =>x));
+      // print(coordinates[0]);
+      var coords = geometry['coordinates'];
+      print(coords[0].toString() + "/" + coords[1].toString());
+      lst.add(Marker(
+          width: 80.0,
+          height: 80.0,
+          point: new LatLng(coords[1], coords[0]),
+          builder: (ctx) => new Container(child: Icon(Icons.place))));
+    }
+    // = jsonData['features'];
+    // print(defis);
+    // lst.add(Marker(
+    //     width: 80.0,
+    //     height: 80.0,
+    //     point: new LatLng(51.5, -0.09),
+    //     builder: (ctx) => new Container(
+    //           child: new FlutterLogo(),
+    //         )));
+    return Future<List<Marker>>.value(lst);
+  }
+
+  Future<List<Marker>> getFutureData() async =>
+      await Future.delayed(Duration(seconds: 5), () {
+        var lst = List<Marker>();
+        lst.add(Marker(
+            width: 80.0,
+            height: 80.0,
+            point: new LatLng(51.5, -0.09),
+            builder: (ctx) => new Container(
+                  child: new FlutterLogo(),
+                )));
+        return lst;
+      });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Defi"),
+        ),
+        body: FutureBuilder(
+          // future: getFutureData(),
+          future: _getMarkers(context),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.hasData) {
+              return MapPage(snapshot.data);
+              // Center(
+              //   child: Text(
+              //     snapshot.data,
+              //   ),
+              // );
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
+        )
+        // MapPage());
+        );
   }
 }
 
 class MapPage extends StatelessWidget {
+  MapPage(this._markers);
+  final List<Marker> _markers;
+
   @override
   Widget build(BuildContext context) {
     return new FlutterMap(
       options: new MapOptions(
-        center: new LatLng(51.5, -0.09),
+        center: new LatLng(47.36667, 8.55),
+        // center: new LatLng(47.6780089, 8.8311129),
         zoom: 13.0,
       ),
       layers: [
         new TileLayerOptions(
-            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            // urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            urlTemplate: "https://tile.osm.ch/osm-swiss-style/{z}/{x}/{y}.png",
             subdomains: ['a', 'b', 'c']),
-        new MarkerLayerOptions(
-          markers: [
-            new Marker(
-              width: 80.0,
-              height: 80.0,
-              point: new LatLng(51.5, -0.09),
-              builder: (ctx) => new Container(
-                child: new FlutterLogo(),
-              ),
+        new MarkerLayerOptions(markers: _markers
+            // [
+            //   new Marker(
+            //     width: 80.0,
+            //     height: 80.0,
+            //     point: new LatLng(51.5, -0.09),
+            //     builder: (ctx) => new Container(
+            //       child: new FlutterLogo(),
+            //     ),
+            //   ),
+            // ],
             ),
-          ],
-        ),
       ],
     );
   }
