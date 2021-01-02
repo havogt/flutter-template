@@ -1,13 +1,20 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
+import 'package:flutter_template/map_state_cubit.dart';
 import 'package:flutter_template/push_notifications.dart';
 import 'package:latlong/latlong.dart';
+import "rest_util.dart";
 
-void main() {
+void main() async {
+  // getDefis().then((_) => null);
   runApp(MyApp());
 }
+
+// https://lz4.overpass-api.de/api/interpreter?data=[out:json][timeout:25];area(3600051701)-%3E.searchArea;(node[%22emergency%22=%22defibrillator%22][%22opening_hours%22=%2224/7%22](area.searchArea);way[%22emergency%22=%22defibrillator%22][%22opening_hours%22=%2224/7%22](area.searchArea);relation[%22emergency%22=%22defibrillator%22][%22opening_hours%22=%2224/7%22](area.searchArea););out;%3E;out%20skel%20qt;
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -30,56 +37,23 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         // home: MyHomePage(title: 'Flutter Demo Home Page'),
-        home: MapHomePage());
+        home: BlocProvider<MapStateCubit>(
+            create: (_) => MapStateCubit(MapController()),
+            child: MapHomePage()));
   }
 }
 
 class MapHomePage extends StatelessWidget {
-  Future<List<Marker>> _getMarkers(BuildContext context) async {
-    String data = await DefaultAssetBundle.of(context)
-        .loadString("assets/defis_ch_24h.json");
-    final jsonData = jsonDecode(data);
-    print(jsonData);
-    List<Map<String, dynamic>> defis =
-        List<Map<String, dynamic>>.from(jsonData['features']);
-
-    var lst = List<Marker>();
-    for (Map<String, dynamic> defi in defis) {
-      Map<String, dynamic> geometry = defi['geometry'];
-      // List<int> coordinates = List<int>.from(geometry['coordinates'].map((x) =>x));
-      // print(coordinates[0]);
-      var coords = geometry['coordinates'];
-      print(coords[0].toString() + "/" + coords[1].toString());
-      lst.add(Marker(
-          width: 80.0,
-          height: 80.0,
-          point: new LatLng(coords[1], coords[0]),
-          builder: (ctx) => new Container(child: Icon(Icons.place))));
-    }
-    // = jsonData['features'];
-    // print(defis);
-    // lst.add(Marker(
-    //     width: 80.0,
-    //     height: 80.0,
-    //     point: new LatLng(51.5, -0.09),
-    //     builder: (ctx) => new Container(
-    //           child: new FlutterLogo(),
-    //         )));
-    return Future<List<Marker>>.value(lst);
-  }
-
-  Future<List<Marker>> getFutureData() async =>
-      await Future.delayed(Duration(seconds: 5), () {
-        var lst = List<Marker>();
-        lst.add(Marker(
+  Future<List<Marker>> _getMarkersOnline(BuildContext context) async {
+    List<DefiNode> defis = await getDefis();
+    return defis
+        .map((defi) => Marker(
             width: 80.0,
             height: 80.0,
-            point: new LatLng(51.5, -0.09),
-            builder: (ctx) => new Container(
-                  child: new FlutterLogo(),
-                )));
-        return lst;
-      });
+            point: LatLng(defi.lat, defi.lon),
+            builder: (ctx) => Container(child: Icon(Icons.place))))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +62,7 @@ class MapHomePage extends StatelessWidget {
           title: Text("Defi"),
         ),
         body: FutureBuilder(
-          // future: getFutureData(),
-          future: _getMarkers(context),
+          future: _getMarkersOnline(context),
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
               return MapPage(snapshot.data);
@@ -104,9 +77,23 @@ class MapHomePage extends StatelessWidget {
               );
             }
           },
-        )
-        // MapPage());
-        );
+        ),
+        floatingActionButton:
+            Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+          FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () => BlocProvider.of<MapStateCubit>(context).zoomIn(),
+            heroTag: null,
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          FloatingActionButton(
+            child: Icon(Icons.remove),
+            onPressed: () => BlocProvider.of<MapStateCubit>(context).zoomOut(),
+            heroTag: null,
+          )
+        ]));
   }
 }
 
@@ -116,29 +103,51 @@ class MapPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new FlutterMap(
+    return FlutterMap(
+      mapController: BlocProvider.of<MapStateCubit>(context).controller,
       options: new MapOptions(
         center: new LatLng(47.36667, 8.55),
         // center: new LatLng(47.6780089, 8.8311129),
-        zoom: 13.0,
+        zoom: BlocProvider.of<MapStateCubit>(context).state,
+        plugins: [
+          MarkerClusterPlugin(),
+        ],
       ),
       layers: [
         new TileLayerOptions(
             // urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             urlTemplate: "https://tile.osm.ch/osm-swiss-style/{z}/{x}/{y}.png",
             subdomains: ['a', 'b', 'c']),
-        new MarkerLayerOptions(markers: _markers
-            // [
-            //   new Marker(
-            //     width: 80.0,
-            //     height: 80.0,
-            //     point: new LatLng(51.5, -0.09),
-            //     builder: (ctx) => new Container(
-            //       child: new FlutterLogo(),
-            //     ),
-            //   ),
-            // ],
-            ),
+        MarkerClusterLayerOptions(
+          maxClusterRadius: 120,
+          size: Size(40, 40),
+          fitBoundsOptions: FitBoundsOptions(
+            padding: EdgeInsets.all(50),
+          ),
+          markers: _markers,
+          polygonOptions: PolygonOptions(
+              borderColor: Colors.blueAccent,
+              color: Colors.black12,
+              borderStrokeWidth: 3),
+          builder: (context, markers) {
+            return FloatingActionButton(
+              child: Text(markers.length.toString()),
+              onPressed: null,
+            );
+          },
+        ),
+        // new MarkerLayerOptions(markers: _markers
+        // [
+        //   new Marker(
+        //     width: 80.0,
+        //     height: 80.0,
+        //     point: new LatLng(51.5, -0.09),
+        //     builder: (ctx) => new Container(
+        //       child: new FlutterLogo(),
+        //     ),
+        //   ),
+        // ],
+        // ),
       ],
     );
   }

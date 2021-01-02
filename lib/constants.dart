@@ -1,0 +1,2 @@
+const defis_overpass_query =
+    r"https://lz4.overpass-api.de/api/interpreter?data=[out:json][timeout:25];area(3600051701)-%3E.searchArea;(node[%22emergency%22=%22defibrillator%22][%22opening_hours%22=%2224/7%22](area.searchArea);way[%22emergency%22=%22defibrillator%22][%22opening_hours%22=%2224/7%22](area.searchArea);relation[%22emergency%22=%22defibrillator%22][%22opening_hours%22=%2224/7%22](area.searchArea););out;%3E;out%20skel%20qt;";
